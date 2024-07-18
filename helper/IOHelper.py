@@ -22,7 +22,7 @@ def get_fastas_from_file(fasta_path, uppercase=False):
     seq = None
     header = None
     file_opener = gzip.open if fasta_path.endswith('.gz') else open
-    with file_opener(fasta_path, 'rt') as f:
+    with file_opener(fasta_path, 'rt', encoding='utf-8') as f:
         for line in f.readlines():
             line = line.strip()
             if line.startswith(">"):
@@ -38,6 +38,7 @@ def get_fastas_from_file(fasta_path, uppercase=False):
                     seq = line.upper() if uppercase else line
     fastas.append(seq)
     # headers.append(header)
+
     return np.array(fastas)
 
 
@@ -55,7 +56,10 @@ def get_activity_from_file(activity_path):
     np.ndarray
         Array of data from the TSV file, skipping the header.
     """
-    data = np.genfromtxt(activity_path, delimiter='\t', skip_header=1)
+    file_opener = gzip.open if activity_path.endswith(".gz") else open
+    with file_opener(activity_path, 'rt') as file:
+        data = np.genfromtxt(file, delimiter='\t', skip_header=1)
+
     return data
 
 
