@@ -1,5 +1,5 @@
 import numpy as np
-
+import gzip
 
 def get_fastas_from_file(fasta_path, uppercase=False):
     """
@@ -21,7 +21,8 @@ def get_fastas_from_file(fasta_path, uppercase=False):
     # headers = []
     seq = None
     header = None
-    with open(fasta_path) as f:
+    file_opener = gzip.open if fasta_path.endswith('.gz') else open
+    with file_opener(fasta_path, 'rt') as f:
         for line in f.readlines():
             line = line.strip()
             if line.startswith(">"):
