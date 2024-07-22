@@ -127,17 +127,68 @@ def convert_one_hot(sequences, alphabet="ACGT", uncertain_N=True):
     return one_hot
 
 
-def save_onehot_in_h5(filepath, X_train, Y_train, X_val, Y_val, X_test, Y_test):
+def save_onehot_in_h5(filepath, X_train, Y_train, X_val, Y_val, X_test, Y_test, comp_level=4):
+    """
+    Save one-hot encoded arrays and labels to an HDF5 file with gzip.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the output HDF5 file.
+    X_train : numpy.ndarray
+        One-hot encoded training data.
+    Y_train : numpy.ndarray
+        Training labels.
+    X_val : numpy.ndarray
+        One-hot encoded validation data.
+    Y_val : numpy.ndarray
+        Validation labels.
+    X_test : numpy.ndarray
+        One-hot encoded test data.
+    Y_test : numpy.ndarray
+        Test labels.
+    comp_level : int
+        gzip compression level. An integer from 0 to 9, default is 4.
+    """
     with h5py.File(filepath, 'w') as h5f:
-        h5f.create_dataset('X_train', data=X_train, dtype='int8', compression='gzip', compression_opts=9)
-        h5f.create_dataset('Y_train', data=Y_train, dtype='float32', compression='gzip', compression_opts=9)
-        h5f.create_dataset('X_val', data=X_val, dtype='int8', compression='gzip', compression_opts=9)
-        h5f.create_dataset('Y_val', data=Y_val, dtype='float32', compression='gzip', compression_opts=9)
-        h5f.create_dataset('X_test', data=X_test, dtype='int8', compression='gzip', compression_opts=9)
-        h5f.create_dataset('Y_test', data=Y_test, dtype='float32', compression='gzip', compression_opts=9)
+        h5f.create_dataset('X_train', data=X_train, dtype='int8',
+                           compression='gzip', compression_opts=comp_level)
+        h5f.create_dataset('Y_train', data=Y_train, dtype='float32',
+                           compression='gzip', compression_opts=comp_level)
+        h5f.create_dataset('X_val', data=X_val, dtype='int8',
+                           compression='gzip', compression_opts=comp_level)
+        h5f.create_dataset('Y_val', data=Y_val, dtype='float32',
+                           compression='gzip', compression_opts=comp_level)
+        h5f.create_dataset('X_test', data=X_test, dtype='int8',
+                           compression='gzip', compression_opts=comp_level)
+        h5f.create_dataset('Y_test', data=Y_test, dtype='float32',
+                           compression='gzip', compression_opts=comp_level)
 
 
 def load_onehot_from_h5(filepath):
+    """
+    Load one-hot encoded arrays and labels from an HDF5 file.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the input HDF5 file.
+
+    Returns
+    -------
+    X_train : numpy.ndarray
+        One-hot encoded training data.
+    Y_train : numpy.ndarray
+        Training labels.
+    X_val : numpy.ndarray
+        One-hot encoded validation data.
+    Y_val : numpy.ndarray
+        Validation labels.
+    X_test : numpy.ndarray
+        One-hot encoded test data.
+    Y_test : numpy.ndarray
+        Test labels.
+    """
     with h5py.File(filepath, 'r') as h5f:
         X_train = h5f['X_train'][:]
         Y_train = h5f['Y_train'][:]
