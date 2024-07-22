@@ -1,5 +1,7 @@
 import numpy as np
 import gzip
+import h5py
+
 
 def get_fastas_from_file(fasta_path, uppercase=False):
     """
@@ -112,7 +114,7 @@ def convert_one_hot(sequences, alphabet="ACGT", uncertain_N=True):
 
     # create one-hot representation
     n_classes = len(alphabet)
-    one_hot = np.eye(n_classes)[pre_onehot]
+    one_hot = np.eye(n_classes, dtype=np.int8)[pre_onehot]
 
     # remove nonsense character
     one_hot = one_hot[:,:,:A]
@@ -123,3 +125,24 @@ def convert_one_hot(sequences, alphabet="ACGT", uncertain_N=True):
             index = np.where(np.sum(x, axis=-1) == 0)[0]
             one_hot[n,index,:] = 0.25
     return one_hot
+
+
+def save_onehot_in_h5(filepath, X_train, Y_train, X_val, Y_val, X_test, Y_test):
+    with h5py.File(filepath, 'w') as h5f:
+        h5f.create_dataset('X_train', data=X_train, dtype='int8', compression='gzip', compression_opts=9)
+        h5f.create_dataset('Y_train', data=Y_train, dtype='float32', compression='gzip', compression_opts=9)
+        h5f.create_dataset('X_val', data=X_val, dtype='int8', compression='gzip', compression_opts=9)
+        h5f.create_dataset('Y_val', data=Y_val, dtype='float32', compression='gzip', compression_opts=9)
+        h5f.create_dataset('X_test', data=X_test, dtype='int8', compression='gzip', compression_opts=9)
+        h5f.create_dataset('Y_test', data=Y_test, dtype='float32', compression='gzip', compression_opts=9)
+
+
+def load_onehot_from_h5(filepath):
+    with h5py.File(filepath, 'r') as h5f:
+        X_train = h5f['X_train'][:]
+        Y_train = h5f['Y_train'][:]
+        X_val = h5f['X_val'][:]
+        Y_val = h5f['Y_val'][:]
+        X_test = h5f['X_test'][:]
+        Y_test = h5f['Y_test'][:]
+    return X_train, Y_train, X_val, Y_val, X_test, Y_test
