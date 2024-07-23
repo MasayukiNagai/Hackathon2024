@@ -1,16 +1,16 @@
 import os
 
 import tensorflow as tf
-
 import keras
 import keras.layers as kl
-from keras.layers import Dense, BatchNormalization, InputLayer, Input
-from keras.layers.convolutional import Conv1D, MaxPooling1D, MaxPooling2D
-from keras.layers.core import Dropout, Reshape, Dense, Activation, Flatten
+from keras.layers import Conv1D, MaxPooling1D
+from keras.layers import Activation, Dense, Flatten
+from keras.layers import Dropout, BatchNormalization
 from keras import models
-from keras.models import Sequential, Model
+from keras.models import Model
 from keras.optimizers import Adam, SGD
 from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras import backend as K
 
 from scipy.stats import spearmanr, pearsonr
 from sklearn.metrics import mean_squared_error
@@ -27,13 +27,11 @@ class BaseNN:
 
     def train_model(self, X_train, Y_train, X_val, Y_val,
                     batch_size, epochs, early_stop=None):
+        callbacks = []
         if early_stop is not None:
-            callbacks = [EarlyStopping(patience='early_stop',
-                                       monitor="val_loss",
-                                       restore_best_weights=True)]
-        else:
-            callbacks = None
-
+            callbacks.append(EarlyStopping(patience=early_stop,
+                                           monitor="val_loss",
+                                           restore_best_weights=True))
         history = self.model.fit(
             X_train,
             Y_train,
@@ -45,9 +43,13 @@ class BaseNN:
 
     def evaluate_model(self, X, Y, split):
         pred = self.model.predict(X)
-        print(f'{split}: MSE = {mean_squared_error(Y, pred.squeeze()):.2f}')
-        print(f'{split}: PCC = {pearsonr(Y, pred.squeeze()):.2f}')
-        print(f'{split}: SCC = {spearmanr(Y, pred.squeeze()):.2f}')
+        Y = Y.reshape(-1)
+        pred = pred.reshape(-1)
+        print(f'true shape: {tf.shape(Y)}')
+        print(f'pred shape: {tf.shape(pred)}')
+        print(f'{split}: MSE = {mean_squared_error(Y, pred):.2f}')
+        print(f'{split}: PCC = {pearsonr(Y, pred)[0]}')
+        print(f'{split}: SCC = {spearmanr(Y, pred)}')
 
     def save_model(self, filetag='model', save_folder=None, format='h5'):
         if save_folder is None:
@@ -56,6 +58,11 @@ class BaseNN:
 
     @staticmethod
     def spearman_correlation(y_true, y_pred):
+        # print("Inside spearman_correlation function")
+        # print("y_true shape:", tf.shape(y_true))
+        # print("y_pred shape:", tf.shape(y_pred))
+        # print("y_true:", y_true)
+        # print("y_pred:", y_pred)
         return (tf.py_function(spearmanr,
                 [tf.cast(y_pred, tf.float32), tf.cast(y_true, tf.float32)],
                 Tout = tf.float32))
@@ -106,6 +113,7 @@ class NormalNN(BaseNN):
         x = BatchNormalization()(x)
         x = Activation(params[f'activation{ilayer}'])(x)
         x = MaxPooling1D(params[f'max_pool{ilayer}'])(x)
+        ilayer += 1
 
         for _ in range(1, params['num_conv_layers']):
             x = Conv1D(
@@ -121,7 +129,7 @@ class NormalNN(BaseNN):
         x = Flatten()(x)
 
         # Dense layers
-        for _ in range(0, params['n_dense_layers']):
+        for _ in range(0, params['num_dense_layers']):
             x = Dense(
                 params[f'dense_neurons{ilayer}'],
                 name=f'layer{ilayer}_dense')(x)
@@ -141,5 +149,5 @@ class NormalNN(BaseNN):
         self.model = Model([x_input], outputs)
         self.model.compile(
             optimizer=Adam(learning_rate=params['lr']),
-            loss='mean_squared_error',
-            metrics=[self.spearman_correlation])
+            loss='mean_squared_error')
+            # metrics=[SpearmanCorrelation()])
