@@ -23,7 +23,6 @@ def main(datadir):
         X_val, Y_val = prepare_input(datadir, fold, 'Val')
         X_test, Y_test = prepare_input(datadir, fold, 'Test')
         filepath = os.path.join(datadir, f'fold{fold}_onehot.h5')
-        print('Saving data in h5 format')
         IOHelper.save_onehot_in_h5(filepath, X_train, Y_train, X_val, Y_val, X_test, Y_test, comp_level=4)
 
 

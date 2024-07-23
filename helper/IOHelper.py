@@ -150,6 +150,7 @@ def save_onehot_in_h5(filepath, X_train, Y_train, X_val, Y_val, X_test, Y_test, 
     comp_level : int
         gzip compression level. An integer from 0 to 9, default is 4.
     """
+    print(f'Saving data in h5 (gzip compression level = {comp_level})')
     with h5py.File(filepath, 'w') as h5f:
         h5f.create_dataset('X_train', data=X_train, dtype='int8',
                            compression='gzip', compression_opts=comp_level)
