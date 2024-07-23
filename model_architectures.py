@@ -17,9 +17,9 @@ from sklearn.metrics import mean_squared_error
 
 
 class BaseNN:
-    def __init__(self, params=None):
+    def __init__(self, params=None, num_outputs=18):
         self.input_shape = (1001, 4)
-        self.num_outputs = 18
+        self.num_outputs = 1
         self.initialize_model(params)
 
     def initialize_model(self, params=None):
@@ -45,11 +45,13 @@ class BaseNN:
         pred = self.model.predict(X)
         Y = Y.reshape(-1)
         pred = pred.reshape(-1)
-        print(f'true shape: {tf.shape(Y)}')
-        print(f'pred shape: {tf.shape(pred)}')
-        print(f'{split}: MSE = {mean_squared_error(Y, pred):.2f}')
-        print(f'{split}: PCC = {pearsonr(Y, pred)[0]}')
-        print(f'{split}: SCC = {spearmanr(Y, pred)}')
+        mse = mean_squared_error(Y, pred)
+        pcc = pearsonr(Y, pred)[0]
+        scc = spearmanr(Y, pred)[0]
+        print(f'{split}: MSE = {mean_squared_error(Y, pred):.4f}')
+        print(f'{split}: PCC = {pearsonr(Y, pred)[0]:.4f}')
+        print(f'{split}: SCC = {spearmanr(Y, pred)[0]:.4f}')
+        return {'MSE': mse, 'PCC': pcc, 'SCC': scc}
 
     def save_model(self, filetag='model', save_folder=None, format='h5'):
         if save_folder is None:
