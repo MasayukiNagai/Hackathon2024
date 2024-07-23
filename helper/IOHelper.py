@@ -1,5 +1,8 @@
 import os
+import sys
 import gzip
+import configparser
+
 import numpy as np
 import h5py
 
@@ -210,3 +213,14 @@ def makedir(dirpath):
             sys.exit(f'Error: Failed to make a directory "{dirpath}"')
     else:
         pass
+
+
+def parse_conf(conffile):
+    conf = configparser.ConfigParser()
+    conf.optionxform = str
+    conf.read(conffile, 'UTF-8')
+    param_dict = dict(conf.items('parameters'))
+    for k, v in param_dict.items():
+        if v.lower() == 'none':
+            param_dict[k] = None
+    return param_dict
