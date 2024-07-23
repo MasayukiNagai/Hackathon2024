@@ -1,5 +1,6 @@
-import numpy as np
+import os
 import gzip
+import numpy as np
 import h5py
 
 
@@ -190,6 +191,7 @@ def load_onehot_from_h5(filepath):
     Y_test : numpy.ndarray
         Test labels.
     """
+    print(f'Loading onehot encoded data from "{filepath}"')
     with h5py.File(filepath, 'r') as h5f:
         X_train = h5f['X_train'][:]
         Y_train = h5f['Y_train'][:]
@@ -198,3 +200,13 @@ def load_onehot_from_h5(filepath):
         X_test = h5f['X_test'][:]
         Y_test = h5f['Y_test'][:]
     return X_train, Y_train, X_val, Y_val, X_test, Y_test
+
+
+def makedir(dirpath):
+    if not os.path.exists(dirpath):
+        try:
+            os.mkdir(dirpath)
+        except OSError:
+            sys.exit(f'Error: Failed to make a directory "{dirpath}"')
+    else:
+        pass
