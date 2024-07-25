@@ -84,7 +84,7 @@ if __name__ == '__main__':
     # params = IOHelper.parse_conf(paramfile)
 
     h5path = '/shared/hackathon/dataset1.h5'
-    outdir = '/home/nagai/projects/Hackathon2024/data/test_output/'
+    outdir = './results'
 
     if not os.path.exists(h5path):
         sys.exit(f'Error: the specified path does not exist: {h5path}')
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     params = {
         'batch_size': 128,
-        'epochs': 1,
+        'epochs': 20,
         'early_stop': 5,
         'lr': 0.005,
         'padding':'same',
