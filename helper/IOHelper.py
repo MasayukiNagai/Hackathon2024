@@ -223,4 +223,16 @@ def parse_conf(conffile):
     for k, v in param_dict.items():
         if v.lower() == 'none':
             param_dict[k] = None
+        else:
+            param_dict[k] = try_convert(v)
     return param_dict
+
+
+def try_convert(value):
+    try:
+        return int(value)
+    except ValueError:
+        try:
+            return float(value)
+        except ValueError:
+            return value
