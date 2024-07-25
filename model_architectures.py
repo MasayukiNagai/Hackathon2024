@@ -19,7 +19,7 @@ from sklearn.metrics import mean_squared_error
 class BaseNN:
     def __init__(self, params=None, num_outputs=18):
         self.input_shape = (1001, 4)
-        self.num_outputs = 1
+        self.num_outputs = num_outputs
         self.initialize_model(params)
 
     def initialize_model(self, params=None):

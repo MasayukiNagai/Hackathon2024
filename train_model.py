@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 
 from keras import backend as K
@@ -27,44 +28,99 @@ def argument_parser():
     return args
 
 
-def main(h5path, params, outdir):
-    # Initialize a NN model
-    my_model = NormalNN(params)
+def write_summary(outpath, all_scores):
+    metrics = ['MSE', 'PCC', 'SCC']
+    with open(outpath, 'w') as f:
+        items = ['fold', 'train_MSE', 'train_PCC', 'train_SCC',
+                 'valid_MSE', 'valid_PCC', 'valid_SCC',
+                 'test_MSE', 'test_PCC', 'test_SCC']
+        header = '\t'.join(items)
+        f.write(header + '\n')
+        for scores in all_scores:
+            items = [scores['fold']]
+            for split in ['train', 'valid', 'test']:
+                items += [f'{scores[split][m]:.5f}' for m in metrics]
+            line = '\t'.join(items)
+            f.write(line + '\n')
 
-    # Load data from the input h5 file
-    X_train, Y_train, X_valid, Y_valid, X_test, Y_test = \
-        IOHelper.load_onehot_from_h5(h5path)
 
-    # Train the model
-    my_history = my_model.train_model(
-        X_train, Y_train, X_valid, Y_valid,
-        batch_size=params['batch_size'],
-        epochs=params['epochs'],
-        early_stop=params['early_stop'])
+def main(datadir, params, outdir, celltype=None):
+    folds = ['fold01', 'fold02', 'fold03', 'fold04', 'fold05',
+             'fold06', 'fold07', 'fold08', 'fold09', 'fold10']
+    all_celltypes = [
+        'amnioserosa', 'brain', 'CNS', 'epidermis', 'fatbody',
+        'glia', 'hemocytes', 'malpighiantube', 'midgut', 'pharynx',
+        'plasmatocytes', 'PNS', 'salivarygland', 'somaticmuscle', 'trachea',
+        'unknown', 'ventralmidline', 'visceralmuscle']
+    if celltype:
+        assert celltype in all_celltypes, f'Invalid celltype: {celltype}'
+        idx = all_celltypes.index(celltype)
+    num_outputs = 1 if celltype else len(all_celltypes)
 
-    # Evaluate the model performance on the three data splits
-    my_model.evaluate_model(X_train, Y_train, 'train')
-    my_model.evaluate_model(X_valid, Y_valid, 'validation')
-    my_model.evaluate_model(X_test, Y_test, 'test')
+    all_scores = []
+    for fold in folds:
+        print(f'########## {fold}, celltype={celltype} ##########')
 
-    # Save the trained model
-    my_model.save_model('trained_model', outdir, 'h5')
+        # Initialize a NN model
+        my_model = NormalNN(params, num_outputs)
+
+        # Load data from the input h5 file
+        h5path = os.path.join(datadir, f'{fold}_onehot.h5')
+        X_train, Y_train, X_valid, Y_valid, X_test, Y_test = \
+            IOHelper.load_onehot_from_h5(h5path)
+
+        # If predicting a single cell type, take out the relevant part
+        if celltype:
+            Y_train = Y_train[:, idx]
+            Y_valid = Y_valid[:, idx]
+            Y_test = Y_test[:, idx]
+
+        # Train the model
+        my_history = my_model.train_model(
+            X_train, Y_train, X_valid, Y_valid,
+            batch_size=params['batch_size'],
+            epochs=params['epochs'],
+            early_stop=params['early_stop'])
+
+        # Evaluate the model performance on the three data splits
+        train_scores = my_model.evaluate_model(X_train, Y_train, 'train')
+        valid_scores = my_model.evaluate_model(X_valid, Y_valid, 'validation')
+        test_scores = my_model.evaluate_model(X_test, Y_test, 'test')
+        test_scores['fold'] = fold
+        scores = {
+            'fold': fold,
+            'train': train_scores,
+            'valid': valid_scores,
+            'test': test_scores}
+        all_scores.append(scores)
+
+        # Save the trained model
+        my_model.save_model(f'model_{fold}', outdir, 'h5')
+        K.clear_session()
+
+    summary_path = os.path.join(outdir, 'summary.txt')
+    write_summary(summary_path, all_scores)
 
 
 if __name__ == '__main__':
     # args = argument_parser()
-    # h5path = args.infile
-    # params = args.paramfile
+    # datadir = args.data
+    # paramfile = args.param
     # outdir = args.outdir
-    # os.exists
-    # os.makedirs
+    # gpu = args.gpu
+    # params = IOHelper.parse_conf(paramfile)
 
-    h5path = '/home/nagai/projects/Hackathon2024/data/Accessibility_models_training_data_h5/fold01_onehot.h5'
+    datadir = '/home/nagai/projects/Hackathon2024/data/Accessibility_models_training_data_h5/'
     outdir = '/home/nagai/projects/Hackathon2024/data/models/'
+    celltype = None  # 'CNS'
+
+    if not os.path.exists(datadir):
+        sys.exit(f'Error: the specified path does not exist: {datadir}')
+    IOHelper.makedir(outdir)
 
     params = {
         'batch_size': 128,
-        'epochs': 1,
+        'epochs': 20,
         'early_stop': 5,
         'lr': 0.005,
         'padding':'same',
@@ -105,4 +161,4 @@ if __name__ == '__main__':
     # print(tf.config.list_physical_devices("GPU"))
     # print(tf.config.experimental.list_physical_devices('GPU'))
 
-    main(h5path, params, outdir)
+    main(datadir, params, outdir, celltype)
