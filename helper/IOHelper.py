@@ -156,13 +156,13 @@ def save_onehot_in_h5(filepath, X_train, Y_train, X_val, Y_val, X_test, Y_test, 
     """
     print(f'Saving data in h5 (gzip compression level = {comp_level})')
     with h5py.File(filepath, 'w') as h5f:
-        h5f.create_dataset('X_train', data=X_train, dtype='int8',
+        h5f.create_dataset('x_train', data=X_train, dtype='int8',
                            compression='gzip', compression_opts=comp_level)
-        h5f.create_dataset('Y_train', data=Y_train, dtype='float32',
+        h5f.create_dataset('y_train', data=Y_train, dtype='float32',
                            compression='gzip', compression_opts=comp_level)
-        h5f.create_dataset('X_val', data=X_val, dtype='int8',
+        h5f.create_dataset('x_valid', data=X_val, dtype='int8',
                            compression='gzip', compression_opts=comp_level)
-        h5f.create_dataset('Y_val', data=Y_val, dtype='float32',
+        h5f.create_dataset('y_valid', data=Y_val, dtype='float32',
                            compression='gzip', compression_opts=comp_level)
         # h5f.create_dataset('X_test', data=X_test, dtype='int8',
         #                    compression='gzip', compression_opts=comp_level)
@@ -196,10 +196,10 @@ def load_onehot_from_h5(filepath):
     """
     print(f'Loading onehot encoded data from "{filepath}"')
     with h5py.File(filepath, 'r') as h5f:
-        X_train = h5f['X_train'][:]
-        Y_train = h5f['Y_train'][:]
-        X_val = h5f['X_val'][:]
-        Y_val = h5f['Y_val'][:]
+        X_train = h5f['x_train'][:]
+        Y_train = h5f['y_train'][:]
+        X_val = h5f['x_valid'][:]
+        Y_val = h5f['y_valid'][:]
         # X_test = h5f['X_test'][:]
         # Y_test = h5f['Y_test'][:]
     return X_train, Y_train, X_val, Y_val
