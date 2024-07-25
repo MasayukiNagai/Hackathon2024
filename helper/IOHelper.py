@@ -164,10 +164,10 @@ def save_onehot_in_h5(filepath, X_train, Y_train, X_val, Y_val, X_test, Y_test, 
                            compression='gzip', compression_opts=comp_level)
         h5f.create_dataset('Y_val', data=Y_val, dtype='float32',
                            compression='gzip', compression_opts=comp_level)
-        h5f.create_dataset('X_test', data=X_test, dtype='int8',
-                           compression='gzip', compression_opts=comp_level)
-        h5f.create_dataset('Y_test', data=Y_test, dtype='float32',
-                           compression='gzip', compression_opts=comp_level)
+        # h5f.create_dataset('X_test', data=X_test, dtype='int8',
+        #                    compression='gzip', compression_opts=comp_level)
+        # h5f.create_dataset('Y_test', data=Y_test, dtype='float32',
+        #                    compression='gzip', compression_opts=comp_level)
 
 
 def load_onehot_from_h5(filepath):
@@ -200,9 +200,9 @@ def load_onehot_from_h5(filepath):
         Y_train = h5f['Y_train'][:]
         X_val = h5f['X_val'][:]
         Y_val = h5f['Y_val'][:]
-        X_test = h5f['X_test'][:]
-        Y_test = h5f['Y_test'][:]
-    return X_train, Y_train, X_val, Y_val, X_test, Y_test
+        # X_test = h5f['X_test'][:]
+        # Y_test = h5f['Y_test'][:]
+    return X_train, Y_train, X_val, Y_val
 
 
 def makedir(dirpath):
