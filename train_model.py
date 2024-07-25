@@ -28,7 +28,7 @@ from helper import IOHelper
 def write_summary(outpath, scores):
     metrics = ['MSE', 'PCC', 'SCC']
     with open(outpath, 'w') as f:
-        items = ['fold', 'train_MSE', 'train_PCC', 'train_SCC',
+        items = ['train_MSE', 'train_PCC', 'train_SCC',
                  'valid_MSE', 'valid_PCC', 'valid_SCC']
         header = '\t'.join(items)
         f.write(header + '\n')
