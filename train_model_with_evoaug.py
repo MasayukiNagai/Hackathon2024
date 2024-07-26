@@ -4,12 +4,16 @@ import argparse
 import gc
 
 import numpy as np
-# import torch
+
+import keras
 from keras import backend as K
 import tensorflow as tf
 
-from model_architectures import NormalNN, MHA_NN, MHA_NN0
+from model_architectures import NormalNN, MHA_NN, EvoAug_NN
 from helper import IOHelper
+
+# import evoaug_tf
+# from evoaug_tf import evoaug, augment
 
 
 def argument_parser():
@@ -57,9 +61,17 @@ def main(h5path, params, outdir):
     # num_outputs = 18
 
     # Initialize a NN model
-    my_model = NormalNN(params, num_inputs, num_outputs)
+    # my_model = NormalNN(params, num_inputs, num_outputs)
     # my_model = MHA_NN(params, num_inputs, num_outputs)
-    print(my_model.model.summary())
+    my_model = EvoAug_NN(params, num_inputs, num_outputs).model
+    # print(my_model.model.summary())
+
+    history = my_model.fit(X_train, Y_train,
+                    epochs=100,
+                    batch_size=100,
+                    shuffle=True,
+                    validation_data=(X_valid, Y_valid))
+
 
     # Train the model
     my_history = my_model.train_model(
@@ -100,41 +112,16 @@ if __name__ == '__main__':
     print(f'Using gpu = {os.environ["CUDA_VISIBLE_DEVICES"]}')
     main(h5path, params, outdir)
 
-    # params = {
-    #     'batch_size': 128,
-    #     'epochs': 20,
-    #     'early_stop': 5,
-    #     'lr': 0.005,
-    #     'padding':'same',
 
-    #     'num_conv_layers': 4,
 
-    #     'num_filters1': 256,
-    #     'kernel_size1': 7,
-    #     'activation1': 'relu',
-    #     'max_pool1': 3,
 
-    #     'num_filters2': 120,
-    #     'kernel_size2': 3,
-    #     'activation2': 'relu',
-    #     'max_pool2': 3,
+history = model.fit(x_train, y_train,
+                    epochs=100,
+                    batch_size=100,
+                    shuffle=True,
+                    validation_data=(x_valid, y_valid),
+                    callbacks=[es_callback, reduce_lr])
 
-    #     'num_filters3': 60,
-    #     'kernel_size3': 3,
-    #     'activation3': 'relu',
-    #     'max_pool3': 3,
-
-    #     'num_filters4': 60,
-    #     'kernel_size4': 3,
-    #     'activation4': 'relu',
-    #     'max_pool4': 3,
-
-    #     'num_dense_layers': 2,
-
-    #     'dense_neurons5': 64,
-    #     'activation5': 'relu',
-    #     'dropout_prob5': 0.4,
-
-    #     'dense_neurons6': 256,
-    #     'activation6': 'relu',
-    #     'dropout_prob6': 0.4,}
+exp_name = 'resbind_fly'
+save_path = os.path.join(output_dir, exp_name+"_evoaug.h5")
+model.save_weights(save_path)
